@@ -15,6 +15,9 @@ version = "v1.0"
 # Public Mode Configuration: Toggle to determine if the bot should operate in public mode (multiple servers) or private mode (single server)
 public = False
 
+# License Expiry Configuration: Specifies the expiry date of the bot's license
+licence_expiry = '27.05.2024'
+
 # Privacy Policy URL: URL directing to the bot's privacy policy page
 privacy_url = 'https://reelab.studio/privacy'
 

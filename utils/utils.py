@@ -8,6 +8,8 @@
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+from datetime import datetime
+
 import discord
 import config
 
@@ -89,6 +91,33 @@ async def check_permissions(ctx):
 
         await ctx.respond(embed=embed,
                           files=[footer_warning_file],
+                          hidden=True)
+        return False
+    return True
+
+
+async def check_licence(ctx):
+    # Get the current date
+    current_date = datetime.now().date()
+
+    # Parse the license expiry date from the config
+    license_expiry_date = datetime.strptime(config.licence_expiry, '%d.%m.%Y').date()
+
+    # Check if the license has expired
+    if current_date > license_expiry_date:
+        # Send an embed warning if the license has expired
+        embed = discord.Embed(
+            description="`⚠️` **- License expired!** — The licence for this bot has expired. Please get in touch with the the development team at [Reelab Studios](https://reelab.studio) to renew your licence.",
+            color=config.ERROR_COLOR
+        )
+        embed.set_footer(text="Access Control • Powered by Reelab Studios")
+        embed.set_image(url="attachment://reelab_error_footer.png")
+
+        # Attachments for the embed
+        _, _, _, _, footer_error_file = await attachments()
+
+        await ctx.respond(embed=embed,
+                          files=[footer_error_file],
                           hidden=True)
         return False
     return True

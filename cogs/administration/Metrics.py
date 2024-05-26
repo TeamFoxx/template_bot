@@ -18,7 +18,7 @@ from discord.ext import commands
 
 import config
 from main import start_time
-from utils.utils import attachments, header, no_permission, check_permissions
+from utils.utils import attachments, header, no_permission, check_permissions, check_licence
 
 
 # ⏤ { configurations } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
@@ -29,6 +29,18 @@ def has_permissions():
             return True
         else:
             return False
+    return commands.check(predicate)
+
+
+def has_valid_license_and_permissions():
+    async def predicate(ctx):
+        # Check license first
+        if not await check_licence(ctx):
+            return False
+        # Check permissions if license is valid
+        if not await check_permissions(ctx):
+            return False
+        return True
     return commands.check(predicate)
 
 
@@ -45,6 +57,11 @@ class Metrics(commands.Cog):
         default_required_permissions=discord.Permissions(administrator=True)
     )
     async def show_metrics(self, ctx):
+        # Check for license expiry before executing the command
+        # If the license has expired, send a warning message and return
+        if not await check_licence(ctx):
+            return
+
         # Check for missing permissions before executing the command
         # If the bot is missing required permissions, send a warning message and return
         if not await check_permissions(ctx):

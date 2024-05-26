@@ -16,7 +16,7 @@ from discord import SlashCommandOption as Option, SlashCommandOptionChoice as Ch
 from discord.ext import commands
 
 import config
-from utils.utils import header, attachments, no_permission, check_permissions
+from utils.utils import header, attachments, no_permission, check_permissions, check_licence
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
@@ -29,6 +29,18 @@ def has_permissions():
             return True
         else:
             return False
+    return commands.check(predicate)
+
+
+def has_valid_license_and_permissions():
+    async def predicate(ctx):
+        # Check license first
+        if not await check_licence(ctx):
+            return False
+        # Check permissions if license is valid
+        if not await check_permissions(ctx):
+            return False
+        return True
     return commands.check(predicate)
 
 
@@ -67,6 +79,11 @@ class Reload(commands.Cog):
             cog (str): The name of the cog to reload.
             sync_slash_commands (bool, optional): Whether to sync slash commands after reloading. Defaults to False.
         """
+        # Check for license expiry before executing the command
+        # If the license has expired, send a warning message and return
+        if not await check_licence(ctx):
+            return
+
         # Check for missing permissions before executing the command
         # If the bot is missing required permissions, send a warning message and return
         if not await check_permissions(ctx):
