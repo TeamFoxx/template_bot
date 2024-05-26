@@ -9,6 +9,7 @@
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 import discord
+from discord import Button, ButtonStyle
 from discord.ext import commands
 
 import config
@@ -40,7 +41,7 @@ class Help(commands.Cog):
             # Check if the command requires admin permissions
             if not command.default_member_permissions or ctx.author.guild_permissions.administrator:
                 embed.add_field(
-                    name=f"/{command.name}",
+                    name=f"🔹/{command.name}",
                     value=f"- {command.description}" or "- No description provided.",
                     inline=False
                 )
@@ -57,9 +58,19 @@ class Help(commands.Cog):
         # Attachments
         banner_file, logo_file, _ = await attachments()
 
+        buttons = [
+            Button(
+                style=ButtonStyle.url,
+                emoji="🛡️",
+                label="Privacy Policy",
+                url=config.privacy_url
+            )
+        ]
+
         # Sending the help embed as a response
         await ctx.respond(embeds=[embed],
                           files=[banner_file, logo_file],
+                          components=[buttons],
                           hidden=True)
 
 

@@ -15,6 +15,9 @@ version = "v1.0"
 # Public Mode Configuration: Toggle to determine if the bot should operate in public mode (multiple servers) or private mode (single server)
 public = False
 
+# Privacy Policy URL: URL directing to the bot's privacy policy page
+privacy_url = 'https://reelab.studio/privacy'
+
 # Access Control: Identifies the unique IDs for developers and staff members for privileged actions
 developer = {599204513722662933}
 staff = {599204513722662933}
