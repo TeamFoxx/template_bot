@@ -18,10 +18,19 @@ from discord.ext import commands
 
 import config
 from main import start_time
-from utils.utils import attachments, header, no_permission
+from utils.utils import attachments, header, no_permission, check_permissions
 
 
 # ⏤ { configurations } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+
+def has_permissions():
+    async def predicate(ctx):
+        if await check_permissions(ctx):
+            return True
+        else:
+            return False
+    return commands.check(predicate)
+
 
 class Metrics(commands.Cog):
     def __init__(self, reelab):
@@ -36,6 +45,11 @@ class Metrics(commands.Cog):
         default_required_permissions=discord.Permissions(administrator=True)
     )
     async def show_metrics(self, ctx):
+        # Check for missing permissions before executing the command
+        # If the bot is missing required permissions, send a warning message and return
+        if not await check_permissions(ctx):
+            return
+
         # Check if the user has permission to reload cogs
         if ctx.author.id in config.developer or ctx.author.id in config.staff:
 
@@ -105,26 +119,23 @@ class Metrics(commands.Cog):
             # Send header message
             embed_header = await header()
 
-            # Attachments
-            banner_file, logo_file, footer_file = await attachments()
+            # Attachments for the embed
+            banner_file, logo_file, footer_file, _, _ = await attachments()
 
             # Sending the metrics embed as a response
             await ctx.respond(embeds=[embed_header, metrics_embed],
                               files=[banner_file, logo_file, footer_file],
                               hidden=True)
         else:
-            # Send header message
-            embed_header = await header()
-
             # Create an embed for permission denial
             no_permission_embed = await no_permission()
 
             # Attachments
-            banner_file, logo_file, footer_file = await attachments()
+            _, _, _, _, reelab_error_footer = await attachments()
 
             # Sending the permission denial embed as a response
-            await ctx.respond(embeds=[embed_header, no_permission_embed],
-                              files=[banner_file, logo_file, footer_file],
+            await ctx.respond(embeds=[no_permission_embed],
+                              files=[reelab_error_footer],
                               hidden=True)
 
 

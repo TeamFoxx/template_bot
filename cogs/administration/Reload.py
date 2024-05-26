@@ -16,12 +16,20 @@ from discord import SlashCommandOption as Option, SlashCommandOptionChoice as Ch
 from discord.ext import commands
 
 import config
-from utils.utils import header, attachments, no_permission
+from utils.utils import header, attachments, no_permission, check_permissions
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 
 # log = logging.getLogger(__name__)
+
+def has_permissions():
+    async def predicate(ctx):
+        if await check_permissions(ctx):
+            return True
+        else:
+            return False
+    return commands.check(predicate)
 
 
 class Reload(commands.Cog):
@@ -59,14 +67,20 @@ class Reload(commands.Cog):
             cog (str): The name of the cog to reload.
             sync_slash_commands (bool, optional): Whether to sync slash commands after reloading. Defaults to False.
         """
-        # Temporarily set the bot's sync commands setting
-        before = getattr(self.bot, 'sync_commands_on_cog_reload', False)
-        self.bot.sync_commands_on_cog_reload = sync_slash_commands
-        await ctx.defer(hidden=True)
+        # Check for missing permissions before executing the command
+        # If the bot is missing required permissions, send a warning message and return
+        if not await check_permissions(ctx):
+            return
 
-        try:
-            # Check if the user has permission to reload cogs
-            if ctx.author.id in config.developer or ctx.author.id in config.staff:
+        # Check if the user has permission to reload cogs
+        if ctx.author.id in config.developer or ctx.author.id in config.staff:
+
+            # Temporarily set the bot's sync commands setting
+            before = getattr(self.bot, 'sync_commands_on_cog_reload', False)
+            self.bot.sync_commands_on_cog_reload = sync_slash_commands
+            await ctx.defer(hidden=True)
+
+            try:
                 # Reload the specified cog
                 cog_path = Path('./cogs').rglob(f'{cog}.py')
                 for path in cog_path:
@@ -77,27 +91,24 @@ class Reload(commands.Cog):
                     f"{' and the slash-commands synced.' if sync_slash_commands else '.'}",
                     hidden=True
                 )
-            else:
-                # Send header message
-                embed_header = await header()
+            except commands.ExtensionNotLoaded:
+                await ctx.respond(f"There is no extension with the name `{cog}` loaded.", hidden=True)
+            except Exception as e:
+                await ctx.respond(f"An error occurred: {e}", hidden=True)
+            finally:
+                # Restore the bot's original sync commands setting
+                self.bot.sync_commands_on_cog_reload = before
+        else:
+            # Create an embed for permission denial
+            no_permission_embed = await no_permission()
 
-                # Create an embed for permission denial
-                no_permission_embed = await no_permission()
+            # Attachments
+            _, _, _, _, reelab_error_footer = await attachments()
 
-                # Attachments
-                banner_file, logo_file, footer_file = await attachments()
-
-                # Sending the permission denial embed as a response
-                await ctx.respond(embeds=[embed_header, no_permission_embed],
-                                  files=[banner_file, logo_file, footer_file],
-                                  hidden=True)
-        except commands.ExtensionNotLoaded:
-            await ctx.respond(f"There is no extension with the name `{cog}` loaded.", hidden=True)
-        except Exception as e:
-            await ctx.respond(f"An error occurred: {e}", hidden=True)
-        finally:
-            # Restore the bot's original sync commands setting
-            self.bot.sync_commands_on_cog_reload = before
+            # Sending the permission denial embed as a response
+            await ctx.respond(embeds=[no_permission_embed],
+                              files=[reelab_error_footer],
+                              hidden=True)
 
     @reload.autocomplete_callback
     async def reload_cog_autocomplete(self, i, cog: str = None):

@@ -19,12 +19,27 @@ public = False
 privacy_url = 'https://reelab.studio/privacy'
 
 # Access Control: Identifies the unique IDs for developers and staff members for privileged actions
-developer = {599204513722662933}
-staff = {599204513722662933}
+developer = {59920451372266293}
+staff = {59920451372266293}
 
 # Styling: Configures colors used in embeds throughout the bot's responses
 EMBED_COLOR = 0x48689b  # primary color for embeds
 HEADER_COLOR = 0x2b2d31  # color used for header sections in embeds
+WARNING_COLOR = 0xd4ce82  # color used for warning messages
+ERROR_COLOR = 0x834455  # color used for error messages
+
+# Bot Required Permissions: List of permissions required by the bot to operate effectively
+bot_required_permissions = [
+    'read_message_history',  # Allows the bot to read the history of messages in channels
+    'view_channel',  # Allows the bot to view channels
+    'send_messages',  # Allows the bot to send messages in channels
+    'send_messages_in_threads',  # Allows the bot to send messages in threads
+    'create_public_threads',  # Allows the bot to create public threads
+    'create_private_threads',  # Allows the bot to create private threads
+    'attach_files',  # Allows the bot to attach files to messages
+    'embed_links',  # Allows the bot to embed links in messages
+    'use_external_emojis'  # Allows the bot to use external emojis
+]
 
 # Emoji Configuration: Defines custom emoji IDs for rich presence and interaction feedback
 community_owner = 1217203408516284516,

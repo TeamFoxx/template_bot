@@ -12,10 +12,20 @@ import discord
 from discord.ext import commands
 
 import config
-from utils.utils import attachments
+from utils.utils import attachments, check_permissions
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+
+def has_permissions():
+    async def predicate(ctx):
+        if await check_permissions(ctx):
+            return True
+        else:
+            return False
+    return commands.check(predicate)
+
+
 class Credits(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -28,6 +38,11 @@ class Credits(commands.Cog):
         description="Displays the developer credits and branding of Reelab Studios."
     )
     async def credits(self, ctx):
+        # Check for missing permissions before executing the command
+        # If the bot is missing required permissions, send a warning message and return
+        if not await check_permissions(ctx):
+            return
+
         # Creating an embed message
         embed = discord.Embed(
             description="This bot was developed by [Aurel Hoxha](https://github.com/TeamFoxx) and is part of Reelab Studios.\n"
@@ -61,7 +76,7 @@ class Credits(commands.Cog):
         embed.set_image(url="attachment://reelab_banner.gif")
 
         # Attachments for the embed
-        banner_file, logo_file, _ = await attachments()
+        banner_file, logo_file, _, _, _ = await attachments()
 
         # Sending the embed with attachments
         await ctx.respond(embed=embed, files=[banner_file, logo_file], hidden=True)

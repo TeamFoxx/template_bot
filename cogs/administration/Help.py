@@ -13,15 +13,24 @@ from discord import Button, ButtonStyle
 from discord.ext import commands
 
 import config
-from utils.utils import attachments
+from utils.utils import attachments, check_permissions
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+def has_permissions():
+    async def predicate(ctx):
+        if await check_permissions(ctx):
+            return True
+        else:
+            return False
+    return commands.check(predicate)
+
+
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # ⏤ { codebase } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+    # ⏤ { codebase } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 
     # Command to display help information for all commands
     @commands.Cog.slash_command(
@@ -29,6 +38,11 @@ class Help(commands.Cog):
         description="Displays information about all commands."
     )
     async def help(self, ctx):
+        # Check for missing permissions before executing the command
+        # If the bot is missing required permissions, send a warning message and return
+        if not await check_permissions(ctx):
+            return
+
         # Create an embed for help information
         embed = discord.Embed(
             description="Here is a list of all available commands and their descriptions:\n"
@@ -55,8 +69,8 @@ class Help(commands.Cog):
         # Setting an image for the embed
         embed.set_image(url="attachment://reelab_banner.gif")
 
-        # Attachments
-        banner_file, logo_file, _ = await attachments()
+        # Attachments for the embed
+        banner_file, logo_file, _, _, _ = await attachments()
 
         buttons = [
             Button(
