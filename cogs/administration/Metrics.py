@@ -8,6 +8,7 @@
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+import logging
 import os
 from datetime import datetime
 
@@ -23,11 +24,16 @@ from utils.utils import attachments, header, no_permission, check_permissions, c
 
 # ⏤ { configurations } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
 def has_permissions():
     async def predicate(ctx):
         if await check_permissions(ctx):
             return True
         else:
+            logger.warning(f"Missing permissions for command: {ctx.command} invoked by user: {ctx.author}")
             return False
     return commands.check(predicate)
 
@@ -36,6 +42,7 @@ def has_valid_license_and_permissions():
     async def predicate(ctx):
         # Check license first
         if not await check_licence(ctx):
+            logger.warning(f"License expired for command: {ctx.command} invoked by user: {ctx.author}")
             return False
         # Check permissions if license is valid
         if not await check_permissions(ctx):
@@ -69,6 +76,7 @@ class Metrics(commands.Cog):
 
         # Check if the user has permission to reload cogs
         if ctx.author.id in config.developer or ctx.author.id in config.staff:
+            logger.info(f"metrics command invoked by user: {ctx.author}")
 
             # Check Server - Bot latency
             latency = round(self.bot.latency * 1000)
@@ -144,6 +152,8 @@ class Metrics(commands.Cog):
                               files=[banner_file, logo_file, footer_file],
                               hidden=True)
         else:
+            logger.warning(f"Permission denied for user: {ctx.author} to use metrics command")
+
             # Create an embed for permission denial
             no_permission_embed = await no_permission()
 

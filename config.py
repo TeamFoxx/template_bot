@@ -44,6 +44,18 @@ bot_required_permissions = [
     'use_external_emojis'  # Allows the bot to use external emojis
 ]
 
+# Cog Toggles: Enable or disable specific bot features
+cogs = {
+    'Help': True,
+    'Credits': True,
+    'Metrics': True,
+    'Reload': True
+}
+
+# Logging Configuration: Defines settings for logging bot activity and errors
+log_file = "bot.log"
+log_level = "WARNING"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 # Emoji Configuration: Defines custom emoji IDs for rich presence and interaction feedback
 community_owner = 1217203408516284516,
 community_admin = 1217203398802280631,
@@ -69,3 +81,38 @@ log_memberleave = 1217203436551016688,
 plantbig_plant = 1217203467777474640,
 plant_plant = 1217204087884611665,
 role_star = 1217203475004526613
+
+
+# ToDo: ----------------------------------------------------------------------------------------------------------------
+
+
+# Database Configuration: Settings for database connection
+db_host = "localhost"
+db_port = 5432
+db_user = "bot_user"
+db_password = "secure_password"
+db_name = "bot_database"
+
+# API Configuration: Keys and endpoints for external API services
+api_keys = {
+    'service_name': 'your_api_key_here'
+}
+api_endpoints = {
+    'service_name': 'https://api.service.com/endpoint'
+}
+
+# Auto Role Assignment: Roles to be automatically assigned to new members
+auto_roles = [654321098765432109, 432109876543210987]
+
+# Scheduled Tasks: Configuration for tasks that run on a schedule
+scheduled_tasks = {
+    'daily_summary': {
+        'enabled': True,
+        'time': '00:00'  # Run at midnight
+    },
+    'weekly_cleanup': {
+        'enabled': True,
+        'day': 'Sunday',
+        'time': '03:00'  # Run at 3 AM every Sunday
+    }
+}

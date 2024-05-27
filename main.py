@@ -8,6 +8,7 @@
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+import logging
 import platform
 import time
 from datetime import datetime
@@ -18,6 +19,7 @@ from colorama import Fore, Style, init
 from discord.ext import commands
 from tqdm import tqdm
 
+import config
 from data.secrets import token
 
 
@@ -43,6 +45,16 @@ class Reelab(commands.Bot):
 
     # ⏤ { codebase } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 
+    # Configure logging
+    logging.basicConfig(
+        level=config.log_level,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Format for log messages
+        handlers=[
+            logging.FileHandler(config.log_file),  # Log to a file
+        ]
+    )
+    logger = logging.getLogger(__name__)
+
     def load_cogs(self):
         """
         Loads all cogs, excluding '__init__.py' files, and handles errors during the load process.
@@ -63,6 +75,12 @@ class Reelab(commands.Bot):
         with tqdm(total=len(cog_paths), desc="Loading cogs", leave=False, bar_format=progress_bar_format) as progress:
             for path in cog_paths:
                 cog_module = str(path).replace('/', '.').replace('\\', '.')[:-3]
+
+                # Check if the cog's feature is enabled
+                cog_name = cog_module.split('.')[-1]
+                if not config.cogs.get(cog_name, False):
+                    continue
+
                 try:
                     self.load_extension(cog_module)
                     progress.set_description(f"{cog_module}")

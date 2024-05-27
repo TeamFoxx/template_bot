@@ -8,7 +8,7 @@
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
-
+import logging
 from pathlib import Path
 
 import discord
@@ -16,18 +16,21 @@ from discord import SlashCommandOption as Option, SlashCommandOptionChoice as Ch
 from discord.ext import commands
 
 import config
-from utils.utils import header, attachments, no_permission, check_permissions, check_licence
+from utils.utils import attachments, no_permission, check_permissions, check_licence
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
 
-# log = logging.getLogger(__name__)
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 def has_permissions():
     async def predicate(ctx):
         if await check_permissions(ctx):
             return True
         else:
+            logger.warning(f"Missing permissions for command: {ctx.command} invoked by user: {ctx.author}")
             return False
     return commands.check(predicate)
 
@@ -36,6 +39,7 @@ def has_valid_license_and_permissions():
     async def predicate(ctx):
         # Check license first
         if not await check_licence(ctx):
+            logger.warning(f"License expired for command: {ctx.command} invoked by user: {ctx.author}")
             return False
         # Check permissions if license is valid
         if not await check_permissions(ctx):
@@ -91,6 +95,7 @@ class Reload(commands.Cog):
 
         # Check if the user has permission to reload cogs
         if ctx.author.id in config.developer or ctx.author.id in config.staff:
+            logger.info(f"reload command invoked by user: {ctx.author}")
 
             # Temporarily set the bot's sync commands setting
             before = getattr(self.bot, 'sync_commands_on_cog_reload', False)
@@ -103,19 +108,23 @@ class Reload(commands.Cog):
                 for path in cog_path:
                     extension = str(path).replace('/', '.').replace('\\', '.')[:-3]
                     self.bot.reload_extension(extension)
+                logger.info(f"Cog {cog} reloaded successfully by user: {ctx.author}")
                 await ctx.respond(
                     f"The Cog `{cog}` has been successfully reloaded"
                     f"{' and the slash-commands synced.' if sync_slash_commands else '.'}",
                     hidden=True
                 )
             except commands.ExtensionNotLoaded:
+                logger.error(f"Failed to reload cog: {cog}. Extension not loaded.")
                 await ctx.respond(f"There is no extension with the name `{cog}` loaded.", hidden=True)
             except Exception as e:
+                logger.error(f"An error occurred while reloading cog: {cog}. Error: {e}")
                 await ctx.respond(f"An error occurred: {e}", hidden=True)
             finally:
                 # Restore the bot's original sync commands setting
                 self.bot.sync_commands_on_cog_reload = before
         else:
+            logger.warning(f"Permission denied for user: {ctx.author} to use reload command")
             # Create an embed for permission denial
             no_permission_embed = await no_permission()
 

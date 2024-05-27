@@ -8,6 +8,8 @@
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #
 # ⏤ { imports } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+import logging
+
 import discord
 from discord import Button, ButtonStyle
 from discord.ext import commands
@@ -17,11 +19,17 @@ from utils.utils import attachments, check_permissions, check_licence
 
 
 # ⏤ { settings } ⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤⏤
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
 def has_permissions():
     async def predicate(ctx):
         if await check_permissions(ctx):
             return True
         else:
+            logger.warning(f"Missing permissions for command: {ctx.command} invoked by user: {ctx.author}")
             return False
     return commands.check(predicate)
 
@@ -30,6 +38,7 @@ def has_valid_license_and_permissions():
     async def predicate(ctx):
         # Check license first
         if not await check_licence(ctx):
+            logger.warning(f"License expired for command: {ctx.command} invoked by user: {ctx.author}")
             return False
         # Check permissions if license is valid
         if not await check_permissions(ctx):
@@ -59,6 +68,8 @@ class Help(commands.Cog):
         # If the bot is missing required permissions, send a warning message and return
         if not await check_permissions(ctx):
             return
+
+        logger.info(f"help command invoked by user: {ctx.author}")
 
         # Create an embed for help information
         embed = discord.Embed(
